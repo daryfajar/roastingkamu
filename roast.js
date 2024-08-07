@@ -3,6 +3,7 @@ import { GoogleAIFileManager } from "@google/generative-ai/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import fs from 'fs'
 import path from 'path'
+import sharp from 'sharp'; // Import sharp
 
 const genAI = new GoogleGenerativeAI(process.env.API_KEY)
 
@@ -14,10 +15,16 @@ export async function describeImage(img) {
         throw new Error("Image file name required.")
 
     const tempPath = path.join('/tmp', path.basename(img.path))
-    fs.copyFileSync(img.path, tempPath)
+    const compressedPath = path.join('/tmp', `compressed_${path.basename(img.path)}`);
+
+    // Kompres gambar menggunakan sharp
+    await sharp(img.path)
+        .resize({ width: 800 }) // Ubah ukuran jika perlu
+        .jpeg({ quality: 80 }) // Atur kualitas untuk kompresi
+        .toFile(compressedPath);
 
     try {
-        const uploadResult = await fileManager.uploadFile(tempPath, {
+        const uploadResult = await fileManager.uploadFile(compressedPath, {
             mimeType: img.mimetype,
             displayName: "Image",
         })
@@ -40,9 +47,12 @@ export async function describeImage(img) {
         const response = await result.response
         return response.text()
     } finally {
-        // Clean up temporary file
+        // Clean up temporary files
         if (fs.existsSync(tempPath)) {
             fs.unlinkSync(tempPath)
+        }
+        if (fs.existsSync(compressedPath)) {
+            fs.unlinkSync(compressedPath)
         }
     }
 }
