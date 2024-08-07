@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { GoogleAIFileManager } from "@google/generative-ai/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import fs from 'fs'
+import path from 'path'
 
 const genAI = new GoogleGenerativeAI(process.env.API_KEY)
 
@@ -9,37 +10,41 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 const fileManager = new GoogleAIFileManager(process.env.API_KEY)
 
 export async function describeImage(img) {
-
-    if (!img && !img.path)
+    if (!img || !img.path)
         throw new Error("Image file name required.")
 
-    const uploadResult = await fileManager.uploadFile(img.path, {
-        mimeType: img.mimetype,
-        displayName: "Image",
-    })
+    const tempPath = path.join('/tmp', path.basename(img.path))
+    fs.copyFileSync(img.path, tempPath)
 
-    const result = await model.generateContent([
-        {
-            fileData: {
-                mimeType: uploadResult.file.mimeType,
-                fileUri: uploadResult.file.uri
-            }
-        },
-        { text: "Describe the image with a general description, if the image contains face of someone popular do not mention its name, just describe what they look like to the person the look alike, and last if the image contains something controversial completly ignore or make a pun out of it to avoid controversies." },
-    ])
+    try {
+        const uploadResult = await fileManager.uploadFile(tempPath, {
+            mimeType: img.mimetype,
+            displayName: "Image",
+        })
 
-    // delete image from cloud
-    await fileManager.deleteFile(uploadResult.file.name)
+        const result = await model.generateContent([
+            {
+                fileData: {
+                    mimeType: uploadResult.file.mimeType,
+                    fileUri: uploadResult.file.uri
+                }
+            },
+            { text: "Describe the image with a general description, if the image contains face of someone popular do not mention its name, just describe what they look like to the person the look alike, and last if the image contains something controversial completly ignore or make a pun out of it to avoid controversies." },
+        ])
 
-    // delete image uploaded
-    fs.unlinkSync(img.path)
+        // delete image from cloud
+        await fileManager.deleteFile(uploadResult.file.name)
 
-    console.log(`Deleted ${uploadResult.file.displayName}`)
+        console.log(`Deleted ${uploadResult.file.displayName} from cloud`)
 
-    const response = await result.response
-    const imageDesc = response.text()
-
-    return imageDesc
+        const response = await result.response
+        return response.text()
+    } finally {
+        // Clean up temporary file
+        if (fs.existsSync(tempPath)) {
+            fs.unlinkSync(tempPath)
+        }
+    }
 }
 
 export async function getRoast(img = '') {
@@ -69,6 +74,3 @@ export async function getRoast(img = '') {
         throw error
     }
 }
-
-
-
