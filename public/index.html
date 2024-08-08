@@ -16,7 +16,7 @@
                 <a href="https://github.com/daryfajar">Sumber</a>
             </blockquote>
         </small>
-        <form enctype="multipart/form-data" action="/upload" method="POST">
+        <form enctype="multipart/form-data" action="/roast" method="POST">
             <label for="photo">Pilih gambar yang mau di roasting</label>
             <input
                 type="file"
@@ -94,7 +94,7 @@
             const data = new FormData();
             data.append("file", photo.files[0]);
 
-            fetch("/upload", {
+            fetch("/roast", {
                 method: "POST",
                 body: data,
             })
