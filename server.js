@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const upload = multer({ dest: '/tmp/uploads/', limits: { fileSize: 2 * 1024 * 1024 } }); // Changed to use temporary directory and set file size limit to 2MB
+const upload = multer({ dest: '/tmp/uploads/', limits: { fileSize: 6 * 1024 * 1024 } }); // Changed to use temporary directory and set file size limit to 6MB
 
 app.use(express.static(path.join(__dirname, 'public'))); // Added to serve static files
 
@@ -20,8 +20,8 @@ app.post('/roast', upload.single('image'), async (req, res) => {
     if (req.fileValidationError) {
         return res.status(400).json({ error: req.fileValidationError });
     }
-    if (req.file.size > 2 * 1024 * 1024) { // Check file size
-        return res.status(400).json({ error: 'File size exceeds 2MB limit' });
+    if (req.file && req.file.size > 6 * 1024 * 1024) { // Check file size
+        return res.status(400).json({ error: 'File size exceeds 6MB limit' });
     }
     try {
         if (!req.file) {
