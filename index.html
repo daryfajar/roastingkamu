@@ -187,24 +187,46 @@
             }
         });
 
-        form.addEventListener('submit', async (e) => {
+        form.onsubmit = (e) => {
             e.preventDefault();
-            const formData = new FormData(form);
-            loading.style.display = 'block';
-            result.innerHTML = '';
-            try {
-                const response = await fetch('/roast', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                result.innerHTML = `<strong>Roast Result:</strong><br>${linkify(data.roast)}`;
-            } catch (error) {
-                result.innerHTML = 'An error occurred while roasting the image.';
-            } finally {
-                loading.style.display = 'none';
-            }
-        });
+            roast.innerHTML = "";
+            button.disabled = true;
+
+            loading.style.opacity = 1;
+
+            const data = new FormData();
+            data.append("file", photo.files[0]); // Pastikan ini sesuai dengan nama field di server
+
+            fetch("/roast", {
+                method: "POST",
+                body: data,
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                if (data.ok) {
+                    preview.style.opacity = 1;
+                    preview.style.height = "100%";
+                    loading.style.opacity = 0;
+                    form.reset();
+                    roast.innerHTML = marked.parse(data.text);
+                } else {
+                    loading.style.opacity = 0;
+                    roast.innerHTML = "Gagal mengunggah file: " + data.error; // Tampilkan pesan kesalahan
+                }
+                button.disabled = false;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                loading.style.opacity = 0;
+                roast.innerHTML = "Terjadi kesalahan. Silakan coba lagi.";
+                button.disabled = false;
+            });
+        };
 
         function linkify(text) {
             // Regex untuk mendeteksi URL biasa dan URL dalam format markdown

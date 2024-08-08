@@ -16,24 +16,22 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.post('/roast', upload.single('image'), async (req, res) => {
+app.post('/roast', upload.single('file'), async (req, res) => { // Pastikan 'file' sesuai dengan nama field di FormData
     if (req.fileValidationError) {
         return res.status(400).json({ error: req.fileValidationError });
     }
-    if (req.file && req.file.size > 6 * 1024 * 1024) { // Check file size
+    if (!req.file) {
+        return res.status(400).json({ error: 'No image uploaded' });
+    }
+    if (req.file.size > 6 * 1024 * 1024) { // Check file size
         return res.status(400).json({ error: 'File size exceeds 6MB limit' });
     }
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No image uploaded' });
-        }
-
         console.log('Received file:', req.file); // Log file information
-
         const roast = await getRoast(req.file);
-        res.json({ roast });
+        res.json({ ok: true, text: roast }); // Pastikan respons memiliki format yang benar
     } catch (error) {
-        console.error('Roasting error:', error); // Added error logging
+        console.error('Roasting error:', error); // Log error
         res.status(500).json({ error: 'Internal server error: ' + error.message });
     }
 });

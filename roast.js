@@ -68,8 +68,8 @@ export async function describeImage(img) {
 export async function getRoast(img = '') {
     try {
         console.log('Processing image:', img); // Log informasi gambar
-        const imageDesc = await describeImage(img)
-
+        const imageDesc = await describeImage(img);
+        console.log('Image description:', imageDesc); // Log deskripsi gambar
         const prompt = `${imageDesc}
     
     I want you to act like meanest person in the world that a lot of people hate because what you said is so true.
