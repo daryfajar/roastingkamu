@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Roasting Foto</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body class="min-h-screen bg-slate-100">
     <main class="container">
@@ -17,82 +16,116 @@
                 <a href="https://github.com/daryfajar">Sumber</a>
             </blockquote>
         </small>
-        <form id="uploadForm" enctype="multipart/form-data" action="/upload" method="POST">
-            <label for="imageUpload">Pilih gambar yang mau di roasting</label>
-            <input id="imageUpload" type="file" name="image" accept="image/jpeg, image/jpg, image/png, image/webm" required />
-            <div class="container turnstile"></div>
+        <form enctype="multipart/form-data" action="/upload" method="POST">
+            <label for="photo">Pilih gambar yang mau di roasting</label>
+            <input
+                type="file"
+                accept="image/jpeg, image/jpg, image/png, image/webm"
+                placeholder="Pilih gambar"
+                id="photo"
+                required
+            />
             <button>🔥 Menyalakan 🔥</button>
         </form>
-        <div aria-busy="true" id="loading" style="opacity: 0; margin-block: 32px">Sabar lagi mikir...</div>
-        <img id="imagePreview" src="" alt="Foto Terkait" style="opacity: 0; max-width: 350px; height: 0" />
-        <p id="result" style="margin-block: 32px"></p>
+
+        <div aria-busy="true" id="loading" style="opacity: 0; margin-block: 32px">
+            Sabar lagi mikir...
+        </div>
+
+        <img
+            id="preview"
+            src=""
+            alt="Foto Terkait"
+            style="opacity: 0; max-width: 350px; height: 0"
+        />
+
+        <p id="roast" style="margin-block: 32px"></p>
     </main>
+
     <hr />
+
     <footer class="container">
-        <p>No Copyright &#169; Dary Fajar - Pakai suka suka 🔥 source code ada dibawah</p>
+        <p>
+            No Copyright &#169; Dary Fajar - Pakai suka suka 🔥 source code ada
+            dibawah
+        </p>
         <p>Support developer 😁</p>
         <ul>
-            <li><a target="_blank" href="https://saweria.co/daryfajar">Saweria</a></li>
-            <li><a target="_blank" href="https://github.com/daryfajar">Github</a></li>
-            <li><a target="_blank" href="https://instagram.com/daryfajar">Instagram</a></li>
+            <li>
+                <a target="_blank" href="https://saweria.co/daryfajar">Saweria</a>
+            </li>
+            <li>
+                <a target="_blank" href="https://github.com/daryfajar"
+                    >Github</a
+                >
+            </li>
+            <li>
+                <a target="_blank" href="https://instagram.com/daryfajar"
+                    >Instagram</a
+                >
+            </li>
         </ul>
+
         <p>Terinsiprasi dari github account roast</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        const form = document.getElementById('uploadForm');
-        const imageUpload = document.getElementById('imageUpload');
-        const imagePreview = document.getElementById('imagePreview');
-        const loading = document.getElementById('loading');
-        const result = document.getElementById('result');
+        const form = document.querySelector("form"), button = document.querySelector('form button');
+        const photo = document.querySelector("#photo");
+        const roast = document.querySelector("#roast");
+        const loading = document.querySelector("#loading");
+        const preview = document.querySelector("#preview");
 
-        imageUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
+        photo.onchange = (evt) => {
+            const [file] = photo.files;
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.opacity = 1;
-                    imagePreview.style.height = "100%";
-                }
-                reader.readAsDataURL(file);
+                preview.src = URL.createObjectURL(file);
             }
-        });
+        };
 
-        form.addEventListener('submit', async (e) => {
+        form.onsubmit = (e) => {
             e.preventDefault();
-            const formData = new FormData(form);
-            loading.style.opacity = 1;
-            result.innerHTML = '';
-            try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                result.innerHTML = `<strong>Roast Result:</strong><br>${linkify(data.roast)}`;
-            } catch (error) {
-                result.innerHTML = 'An error occurred while roasting the image.';
-            } finally {
-                loading.style.opacity = 0;
-            }
-        });
+            roast.innerHTML = "";
+            button.disabled = true;
 
-        function linkify(text) {
-            // Regex untuk mendeteksi URL biasa dan URL dalam format markdown
-            const urlRegex = /(\[([^\]]+)\]\(https?:\/\/[^\s\)]+\))|((https?:\/\/[^\s]+))/g;
-            text = text.replace(urlRegex, function(match, p1, p2, p3, p4) {
-                if (p1) {
-                    const parts = p1.match(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/);
-                    return `<a href="${parts[2]}" target="_blank">${parts[1]}</a>`;
-                } else {
-                    return `<a href="${p4}" target="_blank">${p4}</a>`;
-                }
-            });
-            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            return text;
-        }
+            loading.style.opacity = 1;
+
+            const data = new FormData();
+            data.append("file", photo.files[0]);
+
+            fetch("/upload", {
+                method: "POST",
+                body: data,
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.ok) {
+                        preview.style.opacity = 1;
+                        preview.style.height = "100%";
+                        loading.style.opacity = 0;
+                        form.reset();
+                        roast.innerHTML = marked.parse(data.text);
+                    } else if (data.statusCode == 429) {
+                        preview.style.opacity = 1;
+                        preview.style.height = "100%";
+                        loading.style.opacity = 0;
+                        form.reset();
+                        preview.src = '';
+                        roast.innerHTML = `Traffic lagi rame, sabar sebentar pls 😭😭<br><small>${data.message}</small>`;
+                    } else {
+                        loading.style.opacity = 0;
+                        roast.innerHTML = "Roastingan terlalu brutal sampe kena sensor 🔥🔥💀💀🤣🤣🤣\nKlik Roast buat coba lagi";
+                    }
+                    button.disabled = false;
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    loading.style.opacity = 0;
+                    roast.innerHTML = "Terjadi kesalahan. Silakan coba lagi.";
+                    button.disabled = false;
+                });
+        };
     </script>
 </body>
 </html>
