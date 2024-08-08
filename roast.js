@@ -17,11 +17,17 @@ export async function describeImage(img) {
     const tempPath = path.join('/tmp', path.basename(img.path))
     const compressedPath = path.join('/tmp', `compressed_${path.basename(img.path)}`);
 
-    // Kompres gambar menggunakan sharp
-    await sharp(img.path)
-        .resize({ width: 800 }) // Ubah ukuran jika perlu
-        .jpeg({ quality: 80 }) // Atur kualitas untuk kompresi
-        .toFile(compressedPath);
+    try {
+        console.log('Compressing image:', img.path); // Log sebelum kompresi
+        await sharp(img.path)
+            .resize({ width: 800 }) // Ubah ukuran jika perlu
+            .jpeg({ quality: 80 }) // Atur kualitas untuk kompresi
+            .toFile(compressedPath);
+        console.log('Image compressed successfully:', compressedPath); // Log setelah kompresi
+    } catch (error) {
+        console.error('Error during image compression:', error); // Log error kompresi
+        throw error;
+    }
 
     try {
         const uploadResult = await fileManager.uploadFile(compressedPath, {
@@ -58,8 +64,8 @@ export async function describeImage(img) {
 }
 
 export async function getRoast(img = '') {
-
     try {
+        console.log('Processing image:', img); // Log informasi gambar
         const imageDesc = await describeImage(img)
 
         const prompt = `${imageDesc}
@@ -77,6 +83,7 @@ export async function getRoast(img = '') {
 
         return text
     } catch (error) {
+        console.error('Error in getRoast:', error); // Log error
         if (fs.existsSync(img.path)) {
             fs.unlinkSync(img.path)
         }

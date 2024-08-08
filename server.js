@@ -25,10 +25,12 @@ app.post('/roast', upload.single('image'), async (req, res) => {
             return res.status(400).json({ error: 'No image uploaded' });
         }
 
+        console.log('Received file:', req.file); // Log file information
+
         const roast = await getRoast(req.file);
         res.json({ roast });
     } catch (error) {
-        console.error('Roasting error:', error);
+        console.error('Roasting error:', error); // Added error logging
         res.status(500).json({ error: 'Internal server error: ' + error.message });
     }
 });
