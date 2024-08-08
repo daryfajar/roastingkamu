@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const upload = multer({ dest: '/tmp/uploads/', limits: { fileSize: 6 * 1024 * 1024 } }); // Changed to use temporary directory and set file size limit to 6MB
+const upload = multer({ dest: '/tmp/uploads/', limits: { fileSize: 6 * 1024 * 1024 } ); // Changed to use temporary directory and set file size limit to 6MB
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public'))); // Added to serve static files
@@ -22,16 +22,21 @@ app.post('/roast', upload.single('image'), async (req, res) => {
     const { 'cf-turnstile-response': token } = req.body; // Get token from body
 
     // Verify Turnstile token
-    const secretKey = '0x4AAAAAAAgvgGANob4J-3Uq'; // Replace with your Secret Key
-    const response = await axios.post(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, null, {
-        params: {
-            secret: secretKey,
-            response: token,
-        },
-    });
+    const secretKey = process.env.TURNSTILE_SECRET_KEY; // Replace with your Secret Key
+    try {
+        const response = await axios.post(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, null, {
+            params: {
+                secret: secretKey,
+                response: token,
+            },
+        });
 
-    if (!response.data.success) {
-        return res.status(400).json({ error: 'Turnstile verification failed' });
+        if (!response.data.success) {
+            return res.status(400).json({ error: 'Turnstile verification failed' });
+        }
+    } catch (error) {
+        console.error('Error verifying Turnstile token:', error);
+        return res.status(500).json({ error: 'Error verifying Turnstile token' });
     }
 
     if (req.fileValidationError) {
