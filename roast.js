@@ -21,9 +21,11 @@ export async function describeImage(img) {
         console.log('Compressing image:', img.path); // Log sebelum kompresi
         await sharp(img.path)
             .resize({ width: 800 }) // Ubah ukuran jika perlu
-            .jpeg({ quality: 80 }) // Atur kualitas untuk kompresi
+            .jpeg({ quality: 50 }) // Atur kualitas untuk kompresi
             .toFile(compressedPath);
         console.log('Image compressed successfully:', compressedPath); // Log setelah kompresi
+        const stats = fs.statSync(compressedPath);
+        console.log(`Compressed file size: ${stats.size / 1024} KB`); // Log ukuran file dalam KB
     } catch (error) {
         console.error('Error during image compression:', error); // Log error kompresi
         throw error;

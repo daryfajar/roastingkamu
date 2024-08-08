@@ -20,6 +20,9 @@ app.post('/roast', upload.single('image'), async (req, res) => {
     if (req.fileValidationError) {
         return res.status(400).json({ error: req.fileValidationError });
     }
+    if (req.file.size > 2 * 1024 * 1024) { // Check file size
+        return res.status(400).json({ error: 'File size exceeds 2MB limit' });
+    }
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image uploaded' });
