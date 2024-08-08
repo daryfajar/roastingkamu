@@ -1,151 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Roaster</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        #uploadForm {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        input[type="file"] {
-            display: none;
-        }
-        .file-upload {
-            border: 2px solid #3498db;
-            border-radius: 5px;
-            padding: 10px 20px;
-            display: inline-block;
-            cursor: pointer;
-            background-color: #3498db;
-            color: #fff;
-            transition: all 0.3s;
-            margin-right: 10px;
-        }
-        .file-upload:hover {
-            background-color: #2980b9;
-        }
-        button {
-            background-color: #2ecc71;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #27ae60;
-        }
-        #result {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            word-break: break-word;
-        }
-        #result strong {
-            font-weight: bold;
-        }
-        #result em {
-            font-style: italic;
-        }
-        #imagePreview {
-            max-width: 100%;
-            height: auto;
-            margin: 20px auto;
-            border-radius: 8px;
-            display: none;
-            max-height: 400px;
-            object-fit: contain;
-        }
-        .loading {
-            text-align: center;
-            display: none;
-        }
-        .loading:after {
-            content: '.';
-            animation: dots 1s steps(5, end) infinite;
-        }
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60% { content: '...'; }
-            80%, 100% { content: ''; }
-        }
-        blockquote {
-            background-color: #f9f9f9;
-            border-left: 5px solid #ccc;
-            margin: 1.5em 10px;
-            padding: 0.5em 10px;
-            quotes: "\201C""\201D""\2018""\2019";
-            font-style: italic;
-        }
-        blockquote:before {
-            color: #ccc;
-            content: open-quote;
-            font-size: 4em;
-            line-height: 0.1em;
-            margin-right: 0.25em;
-            vertical-align: -0.4em;
-        }
-        blockquote p {
-            display: inline;
-        }
-        @media (max-width: 600px) {
-            .file-upload, button {
-                display: block;
-                width: 100%;
-                margin-bottom: 10px;
-            }
-        }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roasting Foto</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
-<body>
-    <div class="container">
-        <h1>🔥 Image Roaster 🔥</h1>
+<body class="min-h-screen bg-slate-100">
+    <main class="container">
+        <h1 class="text-xl text-center font-bold">Roasting Foto</h1>
         <small>
             <blockquote>
                 Foto akan langsung di hapus jadi tenang aja gabakal bocor dan gabakal
                 bisa dilihat orang lain. source:
-                <a href="https://github.com/kevintherm/image-roaster/blob/main/roast.js#L31-L35">Sumber</a>
+                <a href="https://github.com/daryfajar">Sumber</a>
             </blockquote>
         </small>
-        <form id="uploadForm" enctype="multipart/form-data">
-            <label for="imageUpload" class="file-upload">Choose Image</label>
-            <input id="imageUpload" type="file" name="image" accept="image/*" required>
-            <button type="submit">Get Roasted!</button>
+        <form id="uploadForm" enctype="multipart/form-data" action="/upload" method="POST">
+            <label for="imageUpload">Pilih gambar yang mau di roasting</label>
+            <input id="imageUpload" type="file" name="image" accept="image/jpeg, image/jpg, image/png, image/webm" required />
+            <div class="container turnstile"></div>
+            <button>🔥 Menyalakan 🔥</button>
         </form>
-        <img id="imagePreview" src="" alt="Image preview">
-        <div class="loading" id="loading">Roasting in progress</div>
-        <div id="result"></div>
-    </div>
+        <div aria-busy="true" id="loading" style="opacity: 0; margin-block: 32px">Sabar lagi mikir...</div>
+        <img id="imagePreview" src="" alt="Foto Terkait" style="opacity: 0; max-width: 350px; height: 0" />
+        <p id="result" style="margin-block: 32px"></p>
+    </main>
+    <hr />
+    <footer class="container">
+        <p>No Copyright &#169; Dary Fajar - Pakai suka suka 🔥 source code ada dibawah</p>
+        <p>Support developer 😁</p>
+        <ul>
+            <li><a target="_blank" href="https://saweria.co/daryfajar">Saweria</a></li>
+            <li><a target="_blank" href="https://github.com/daryfajar">Github</a></li>
+            <li><a target="_blank" href="https://instagram.com/daryfajar">Instagram</a></li>
+        </ul>
+        <p>Terinsiprasi dari github account roast</p>
+    </footer>
 
     <script>
         const form = document.getElementById('uploadForm');
@@ -160,7 +52,8 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block';
+                    imagePreview.style.opacity = 1;
+                    imagePreview.style.height = "100%";
                 }
                 reader.readAsDataURL(file);
             }
@@ -169,10 +62,10 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(form);
-            loading.style.display = 'block';
+            loading.style.opacity = 1;
             result.innerHTML = '';
             try {
-                const response = await fetch('/roast', {
+                const response = await fetch('/upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -181,32 +74,23 @@
             } catch (error) {
                 result.innerHTML = 'An error occurred while roasting the image.';
             } finally {
-                loading.style.display = 'none';
+                loading.style.opacity = 0;
             }
         });
 
         function linkify(text) {
             // Regex untuk mendeteksi URL biasa dan URL dalam format markdown
             const urlRegex = /(\[([^\]]+)\]\(https?:\/\/[^\s\)]+\))|((https?:\/\/[^\s]+))/g;
-            
-            // Ubah URL menjadi link yang bisa diklik
             text = text.replace(urlRegex, function(match, p1, p2, p3, p4) {
                 if (p1) {
-                    // Ini adalah link markdown
                     const parts = p1.match(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/);
                     return `<a href="${parts[2]}" target="_blank">${parts[1]}</a>`;
                 } else {
-                    // Ini adalah URL biasa
                     return `<a href="${p4}" target="_blank">${p4}</a>`;
                 }
             });
-
-            // Ubah ** menjadi teks tebal
             text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-            // Ubah * menjadi teks miring
             text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
             return text;
         }
     </script>

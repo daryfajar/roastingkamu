@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Roaster</title>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -140,7 +140,6 @@
         <form id="uploadForm" enctype="multipart/form-data">
             <label for="imageUpload" class="file-upload">Choose Image</label>
             <input id="imageUpload" type="file" name="image" accept="image/*" required>
-            <div class="cf-turnstile" data-sitekey="0x4AAAAAAAgvgGANob4J-3Uq"></div>
             <button type="submit">Get Roasted!</button>
         </form>
         <img id="imagePreview" src="" alt="Image preview">
